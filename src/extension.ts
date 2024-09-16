@@ -2,11 +2,13 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Ensure that a valid workspace folder is open
+// Path to store the streak data
+let statusBarItem: vscode.StatusBarItem;
+
 function getWorkspacePath(): string | undefined {
     const folders = vscode.workspace.workspaceFolders;
     if (folders && folders.length > 0) {
-        return folders[0].uri.fsPath; // Returns the path of the first workspace folder
+        return folders[0].uri.fsPath;
     } else {
         vscode.window.showErrorMessage('No workspace folder is open.');
         return undefined;
@@ -71,6 +73,16 @@ function saveStreakData(lastCoded: string, streak: number) {
     fs.writeFileSync(streakFile, JSON.stringify(data), 'utf-8');
 }
 
+// Function to update the status bar
+function updateStatusBar(streak: number) {
+    if (!statusBarItem) {
+        statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+        statusBarItem.command = 'extension.showStreak'; // Optional: Add a command to the status bar item
+        statusBarItem.show(); // Make sure the status bar item is visible
+    }
+    statusBarItem.text = `🔥 Coding Streak: ${streak} day(s)`;
+}
+
 // Activate function called when VS Code is opened
 export function activate(context: vscode.ExtensionContext) {
     const currentDate = new Date().toLocaleDateString();
@@ -101,8 +113,15 @@ export function activate(context: vscode.ExtensionContext) {
         saveStreakData(currentDate, newStreak);
     }
 
+    // Update the status bar with the current streak
+    updateStatusBar(streakData.streak);
+
     console.log('Code Streak Tracker is now active.');
 }
 
 // Deactivate function
-export function deactivate() {}
+export function deactivate() {
+    if (statusBarItem) {
+        statusBarItem.dispose();
+    }
+}
