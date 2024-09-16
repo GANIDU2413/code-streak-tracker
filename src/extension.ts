@@ -3,15 +3,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Path to store the streak data
-const streakFile = path.join(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', '.vscode', 'codeStreak.json');
+const streakFolder = path.join(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', '.vscode');
+const streakFile = path.join(streakFolder, 'codeStreak.json');
+
+// Function to create the folder and file if they don't exist
+function ensureStreakFileExists() {
+    if (!fs.existsSync(streakFolder)) {
+        fs.mkdirSync(streakFolder, { recursive: true });
+    }
+
+    if (!fs.existsSync(streakFile)) {
+        const initialData = { lastCoded: '', streak: 0 };
+        fs.writeFileSync(streakFile, JSON.stringify(initialData), 'utf-8');
+    }
+}
 
 // Function to read the streak data
 function getStreakData(): { lastCoded: string; streak: number } {
-    if (fs.existsSync(streakFile)) {
-        const data = fs.readFileSync(streakFile, 'utf-8');
-        return JSON.parse(data);
-    }
-    return { lastCoded: '', streak: 0 };
+    ensureStreakFileExists(); // Ensure file exists before reading
+    const data = fs.readFileSync(streakFile, 'utf-8');
+    return JSON.parse(data);
 }
 
 // Function to save the streak data
@@ -20,16 +31,9 @@ function saveStreakData(lastCoded: string, streak: number) {
     fs.writeFileSync(streakFile, JSON.stringify(data), 'utf-8');
 }
 
-let statusBarItem: vscode.StatusBarItem;
-
 // Activate function called when VS Code is opened
 export function activate(context: vscode.ExtensionContext) {
     const currentDate = new Date().toLocaleDateString();
-
-    // Create a status bar item
-    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    statusBarItem.tooltip = "Your current coding streak!";
-    statusBarItem.show();
 
     // Load existing streak data
     const streakData = getStreakData();
@@ -37,7 +41,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Check if user coded today
     if (streakData.lastCoded === currentDate) {
         vscode.window.showInformationMessage(`You've already coded today! Keep it up!`);
-        updateStatusBar(streakData.streak);
     } else {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -56,21 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Update streak data
         saveStreakData(currentDate, newStreak);
-        updateStatusBar(newStreak);
     }
 
     console.log('Code Streak Tracker is now active.');
 }
 
-// Function to update the status bar item
-function updateStatusBar(streak: number) {
-    statusBarItem.text = `🔥 Coding Streak: ${streak} days`;
-    statusBarItem.show();
-}
-
 // Deactivate function
-export function deactivate() {
-    if (statusBarItem) {
-        statusBarItem.dispose();
-    }
-}
+export function deactivate() {}
