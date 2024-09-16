@@ -11,11 +11,9 @@
     "Other"
   ],
   "activationEvents": ["*"],
+  "icon": "images/icon.png",
   "main": "./dist/extension.js",
   "contributes": {
-    "icons": {
-        "icon": "images/logo.png"
-    },
     "commands": [
       {
         "command": "extension.showStreak",
