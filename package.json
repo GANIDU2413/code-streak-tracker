@@ -4,7 +4,6 @@
   "description": "keeps track of your daily coding activity, showing your streak and motivating you to keep it going with milestones and reminders.",
   "version": "0.0.5",
   "publisher": "GANIDU2413",
-  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -14,6 +13,9 @@
   "activationEvents": ["*"],
   "main": "./dist/extension.js",
   "contributes": {
+    "icons": {
+        "icon": "images/logo.png"
+    },
     "commands": [
       {
         "command": "extension.showStreak",
